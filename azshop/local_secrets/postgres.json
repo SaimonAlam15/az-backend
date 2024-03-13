@@ -1,0 +1,8 @@
+{
+    "username": "saimonalam",
+    "password": "",
+    "engine": "postgres",
+    "host": "localhost",
+    "port": 5432,
+    "database": "azdb"
+}
