@@ -65,7 +65,7 @@ ROOT_URLCONF = "azshop.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -80,6 +80,15 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "azshop.wsgi.application"
 
+# Email settings
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = secrets.get("email").get("host")
+EMAIL_PORT = secrets.get("email").get("port")
+EMAIL_HOST_USER = secrets.get("email").get("username")
+EMAIL_HOST_PASSWORD = secrets.get("email").get("password")
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
+DEFAULT_FROM_EMAIL = secrets.get("email").get("from_email")
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
