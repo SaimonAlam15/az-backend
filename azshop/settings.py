@@ -81,13 +81,13 @@ TEMPLATES = [
 WSGI_APPLICATION = "azshop.wsgi.application"
 
 # Email settings
+print(secrets.get("email"))
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = secrets.get("email").get("host")
 EMAIL_PORT = secrets.get("email").get("port")
 EMAIL_HOST_USER = secrets.get("email").get("username")
 EMAIL_HOST_PASSWORD = secrets.get("email").get("password")
 EMAIL_USE_TLS = True
-EMAIL_USE_SSL = False
 DEFAULT_FROM_EMAIL = secrets.get("email").get("from_email")
 
 # Database

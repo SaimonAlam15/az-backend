@@ -6,7 +6,7 @@ from django.template.loader import render_to_string
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth import authenticate, login, logout
-from rest_framework.views import APIView
+from rest_framework.views import APIView, Response
 
 from users.models import User
 from .tokens import TokenGenerator
@@ -24,13 +24,13 @@ class RegistrationView(APIView):
         phone = data.get("phone")
         if pass_1 != pass_2:
             messages.error(request, "Passwords do not match.")
-            return redirect('registration')
+            return Response(status=400, data={"error": "Passwords do not match."})
         if User.objects.filter(email=email).exists():
             messages.error(request, "User with this email already exists.")
-            return redirect('registration')
+            return Response(status=400, data={"error": "User with this email already exists."})
         if User.objects.filter(phone=phone).exists():
             messages.error(request, "User with this phone number already exists.")
-            return redirect('registration')
+            return Response(status=400, data={"error": "User with this phone number already exists."})
         user = User.objects.create_user(
             first_name=first_name,
             last_name=last_name,
@@ -40,7 +40,6 @@ class RegistrationView(APIView):
             username=phone,
         )
         user.is_active = False
-        user.save()
 
          # Email Address Confirmation Email
         current_site = get_current_site(request)
@@ -51,14 +50,20 @@ class RegistrationView(APIView):
             'uid': urlsafe_base64_encode(force_bytes(user.pk)),
             'token': TokenGenerator().make_token(user)
         })
+
         email = EmailMessage(
             email_subject,
             message,
             EMAIL_HOST_USER,
             [user.email],
         )
-        send_mail(email_subject, message, EMAIL_HOST_USER, user.email, fail_silently=True)
-        return redirect('signin')
+        try:
+            send_mail(email_subject, message, EMAIL_HOST_USER, [user.email], fail_silently=False)
+            user.save()
+        except Exception as e:
+            messages.error(request, str(e))
+            return Response(status=400, data={"error": str(e)})
+        return Response(status=201, data={"message": "User created successfully."})
     
 
 class ActivationView(APIView):
@@ -72,5 +77,23 @@ class ActivationView(APIView):
             user.is_active = True
             user.save()
             messages.success(request, "Account activated successfully.")
-            return redirect('signin')
-        return render(request, 'activation_failed.html')
+            return Response(status=200, data={"message": "Account activated successfully."})
+        return Response(status=400, data={"error": "Activation link is invalid."})
+
+
+class LoginView(APIView):
+    def post(self, request):
+        data = request.data
+        phone = data.get("phone")
+        password = data.get("password")
+
+        user = authenticate(username=phone, password=password)
+        if user is not None:
+            login(request, user)
+            return Response(status=200, data={"message": "User logged in successfully."})
+        return Response(status=400, data={"error": "Invalid email or password."})
+
+class LogoutView(APIView):
+    def get(self, request):
+        logout(request)
+        return Response(status=200, data={"message": "User logged out successfully."})
