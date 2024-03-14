@@ -5,6 +5,9 @@ from .enums import UserRoles, UserStatus
 
 
 class User(AbstractUser):
+    class Meta:
+        db_table = "users"
+        
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
     email = models.EmailField(unique=True)

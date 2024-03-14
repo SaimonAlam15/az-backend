@@ -1,0 +1,9 @@
+{% autoescape off %}
+
+Hello {{ user.first_name }}!
+
+Welcome to the site! Click the link below to confirm your email address.
+
+http://{{ domain }}{% url 'activate' uidb64=uid token=token %}
+
+{% endautoescape %}
