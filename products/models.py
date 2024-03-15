@@ -22,7 +22,6 @@ class Product(BaseModel):
         choices=ProductStatus.choices, 
         max_length=255, default=ProductStatus.ACTIVE
     )
-    images = models.ManyToManyField("ProductImage", related_name="product_images", editable=False)
 
     def __str__(self):
         return str(self.name)
@@ -32,8 +31,10 @@ class ProductImage(BaseModel):
     class Meta:
         db_table = "product_images"
 
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    image = models.ImageField(upload_to="photos/")
+    name = models.CharField(max_length=255)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="images")
+    url = models.ImageField(upload_to="photos/")
+    rank = models.IntegerField(default=1)
 
     def __str__(self):
-        return str(self.product.name + " Image")
+        return str(self.name)
