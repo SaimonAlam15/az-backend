@@ -174,3 +174,9 @@ cython_debug/
 # End of https://www.toptal.com/developers/gitignore/api/django
 
 /azshop/local_secrets/
+ 
+### macOS ###
+# General
+.DS_Store
+.AppleDouble
+.LSOverride

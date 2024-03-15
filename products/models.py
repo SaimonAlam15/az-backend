@@ -22,6 +22,18 @@ class Product(BaseModel):
         choices=ProductStatus.choices, 
         max_length=255, default=ProductStatus.ACTIVE
     )
+    images = models.ManyToManyField("ProductImage", related_name="product_images", editable=False)
 
     def __str__(self):
         return str(self.name)
+
+
+class ProductImage(BaseModel):
+    class Meta:
+        db_table = "product_images"
+
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    image = models.ImageField(upload_to="photos/")
+
+    def __str__(self):
+        return str(self.product.name + " Image")
