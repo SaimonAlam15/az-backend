@@ -7,10 +7,12 @@ from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth import authenticate, login, logout
 from rest_framework.views import APIView, Response
+from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveUpdateDestroyAPIView
 
-from users.models import User
+from .models import User, AddressBook
 from .tokens import TokenGenerator
 from azshop.settings import EMAIL_HOST_USER
+from .serializers import UserSerializer, AddressBookSerializer
 
 
 class RegistrationView(APIView):
@@ -97,3 +99,33 @@ class LogoutView(APIView):
     def get(self, request):
         logout(request)
         return Response(status=200, data={"message": "User logged out successfully."})
+
+
+class UserListView(ListAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+
+class UserDetailView(RetrieveUpdateDestroyAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+
+class AddressBookListView(ListCreateAPIView):
+    serializer_class = AddressBookSerializer
+
+    def get_queryset(self):
+        return AddressBook.objects.filter(user=self.kwargs.get("user_id"))
+
+    def perform_create(self, serializer):
+        user = User.objects.get(pk=self.kwargs.get("user_id"))
+        serializer.save(user=user)
+
+
+class AddressBookDetailView(RetrieveUpdateDestroyAPIView):
+    queryset = AddressBook.objects.all()
+    serializer_class = AddressBookSerializer
+    lookup_url_kwarg = "address_id"
+
+    def get_queryset(self):
+        return AddressBook.objects.filter(user=self.kwargs.get("user_id"))
