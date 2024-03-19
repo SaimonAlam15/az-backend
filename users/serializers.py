@@ -15,7 +15,7 @@ class UserSerializer(ModelSerializer):
 class AddressBookSerializer(ModelSerializer):
     class Meta:
         model = AddressBook
-        fields = ['address', 'city', 'zip', 'label']
+        fields = ['id', 'address', 'city', 'zip', 'label']
         extra_kwargs = {
             'user': {'write_only': True}
         }
