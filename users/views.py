@@ -7,10 +7,28 @@ from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth import authenticate, login, logout
 from rest_framework.views import APIView, Response
+from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveUpdateDestroyAPIView
 
-from users.models import User
+from .models import User, AddressBook
 from .tokens import TokenGenerator
 from azshop.settings import EMAIL_HOST_USER
+from .serializers import UserSerializer, AddressBookSerializer
+
+
+
+def send_confirmation_email(request, user):
+    current_site = get_current_site(request)
+    email_subject = "Confirm your Email @ AZ"
+    message = render_to_string('email_confirmation.html',{
+            'name': user.first_name,
+            'domain': current_site.domain,
+            'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+            'token': TokenGenerator().make_token(user)
+        })
+    send_mail(
+            email_subject, message, EMAIL_HOST_USER,
+            [user.email], fail_silently=False
+    )
 
 
 class RegistrationView(APIView):
@@ -41,30 +59,15 @@ class RegistrationView(APIView):
         )
         user.is_active = False
 
-         # Email Address Confirmation Email
-        current_site = get_current_site(request)
-        email_subject = "Confirm your Email @ AZ"
-        message = render_to_string('email_confirmation.html',{
-            'name': user.first_name,
-            'domain': current_site.domain,
-            'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-            'token': TokenGenerator().make_token(user)
-        })
-
-        email = EmailMessage(
-            email_subject,
-            message,
-            EMAIL_HOST_USER,
-            [user.email],
-        )
         try:
-            send_mail(email_subject, message, EMAIL_HOST_USER, [user.email], fail_silently=False)
+            # Email Address Confirmation Email
+            send_confirmation_email(request, user)
             user.save()
         except Exception as e:
             messages.error(request, str(e))
             return Response(status=400, data={"error": str(e)})
         return Response(status=201, data={"message": "User created successfully."})
-    
+
 
 class ActivationView(APIView):
     def get(self, request, uidb64, token):
@@ -77,8 +80,8 @@ class ActivationView(APIView):
             user.is_active = True
             user.save()
             messages.success(request, "Account activated successfully.")
-            return Response(status=200, data={"message": "Account activated successfully."})
-        return Response(status=400, data={"error": "Activation link is invalid."})
+            return render(request, "login.html", status=200)
+        return render(request, 'activation_failed.html', status=400)
 
 
 class LoginView(APIView):
@@ -96,4 +99,53 @@ class LoginView(APIView):
 class LogoutView(APIView):
     def get(self, request):
         logout(request)
-        return Response(status=200, data={"message": "User logged out successfully."})
+        messages.success(request, "Logged out successfully!")
+        return redirect("")
+
+
+class UserListView(ListAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+
+class UserDetailView(RetrieveUpdateDestroyAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        if 'email' in request.data:
+            request.data['is_active'] = False
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        if 'email' in request.data:
+        # Send email confirmation email
+            try:
+                send_confirmation_email(request, self.get_object())
+                logout(request)
+                return redirect("")
+            except Exception as e:
+                return Response(status=400, data={"error": str(e)})
+        return Response(serializer.data)
+
+class AddressBookListView(ListCreateAPIView):
+    serializer_class = AddressBookSerializer
+
+    def get_queryset(self):
+        return AddressBook.objects.filter(user=self.kwargs.get("user_id"))
+
+    def perform_create(self, serializer):
+        user = User.objects.get(pk=self.kwargs.get("user_id"))
+        serializer.save(user=user)
+
+
+class AddressBookDetailView(RetrieveUpdateDestroyAPIView):
+    queryset = AddressBook.objects.all()
+    serializer_class = AddressBookSerializer
+    lookup_url_kwarg = "address_id"
+
+    def get_queryset(self):
+        return AddressBook.objects.filter(user=self.kwargs.get("user_id"))
