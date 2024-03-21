@@ -10,7 +10,7 @@ class Product(BaseModel):
         
     name = models.CharField(max_length=255)
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    stock = models.IntegerField(null=True, blank=True, default=None)
+    stock = models.IntegerField(default=1000)
     description = models.TextField()
     ingredients = models.TextField()
     category = models.CharField(choices=ProductCategories.choices, max_length=255)
