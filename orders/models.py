@@ -19,3 +19,12 @@ class Order(BaseModel):
 
     class Meta:
         db_table = "orders"
+
+    def save(self, *args, **kwargs):
+        if self.status not in [
+            OrderStatus.PENDING, OrderStatus.PROCESSING,
+            OrderStatus.ON_HOLD, OrderStatus.SHIPPED
+            ]:
+            self.cart.status = 'closed'
+            self.cart.save()
+        super().save(*args, **kwargs)
