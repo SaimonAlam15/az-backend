@@ -1,4 +1,3 @@
-from rest_framework.views import APIView, Response
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 
 from .serializers import ProductSerializer, ProductImageSerializer
