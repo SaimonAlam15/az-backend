@@ -9,7 +9,6 @@ class OrderStatus(models.TextChoices):
     FAILED = "failed"
     ON_HOLD = "on_hold"
     SHIPPED = "shipped"
-    DELIVERED = "delivered"
     RETURNED = "returned"
     EXCHANGED = "exchanged"
 

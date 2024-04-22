@@ -16,6 +16,9 @@ class Order(BaseModel):
         choices=OrderStatus.choices, max_length=255,
         default=OrderStatus.PENDING
     )
+    address = models.ForeignKey(
+        'users.AddressBook', null=True, on_delete=models.SET_NULL
+    )
 
     class Meta:
         db_table = "orders"
