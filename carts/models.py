@@ -6,7 +6,7 @@ from .enums import CartStatus
 
 class Cart(BaseModel):
     user = models.ForeignKey('users.User', on_delete=models.CASCADE)
-    status = models.CharField(choices=CartStatus.choices, max_length=16, default=CartStatus.ACTIVE)
+    status = models.CharField(choices=CartStatus.choices, max_length=16, default=CartStatus.OPEN)
 
     class Meta:
         db_table = "carts"
