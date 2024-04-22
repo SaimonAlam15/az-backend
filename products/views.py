@@ -7,6 +7,7 @@ from .models import Product, ProductImage
 class ProductListView(ListCreateAPIView):
     serializer_class = ProductSerializer
     queryset = Product.objects.all()
+    filterset_fields = ["category", "tags"]
 
 
 class ProductDetailView(RetrieveUpdateDestroyAPIView):
