@@ -81,7 +81,7 @@ class ActivationView(APIView):
             user.save()
             messages.success(request, "Account activated successfully.")
             return render(request, "login.html", status=200)
-        return render(request, 'activation_failed.html', status=400)
+        return render(request, 'confirmation_failed.html', status=400)
 
 
 class LoginView(APIView):
