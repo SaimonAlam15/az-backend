@@ -57,7 +57,7 @@ class RegistrationView(APIView):
             email=email,
             password=pass_1,
             phone=phone,
-            username=phone,
+            username=email,
         )
         user.is_active = False
 
@@ -89,10 +89,10 @@ class ActivationView(APIView):
 class LoginView(APIView):
     def post(self, request):
         data = request.data
-        phone = data.get("phone")
+        email = data.get("email")
         password = data.get("password")
 
-        user = authenticate(username=phone, password=password)
+        user = authenticate(username=email, password=password)
         refresh = RefreshToken.for_user(user)
         if user is not None:
             login(request, user)
