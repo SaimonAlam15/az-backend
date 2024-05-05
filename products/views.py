@@ -2,12 +2,14 @@ from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIV
 
 from .serializers import ProductSerializer, ProductImageSerializer
 from .models import Product, ProductImage
+from azshop.permissions import IsReadOnly, IsRestricted
 
 
 class ProductListView(ListCreateAPIView):
     serializer_class = ProductSerializer
     queryset = Product.objects.all()
     filterset_fields = ["category", "tags"]
+    permission_classes = [IsReadOnly]
 
 
 class ProductDetailView(RetrieveUpdateDestroyAPIView):
@@ -18,3 +20,4 @@ class ProductDetailView(RetrieveUpdateDestroyAPIView):
 class ProductImageListView(ListCreateAPIView):
     serializer_class = ProductImageSerializer
     queryset = ProductImage.objects.all()
+    permission_classes = [IsRestricted]

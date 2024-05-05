@@ -8,6 +8,8 @@ from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth import authenticate, login, logout
 from rest_framework.views import APIView, Response
 from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveUpdateDestroyAPIView
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.permissions import IsAuthenticated
 
 from .models import User, AddressBook
 from .tokens import TokenGenerator
@@ -55,7 +57,7 @@ class RegistrationView(APIView):
             email=email,
             password=pass_1,
             phone=phone,
-            username=phone,
+            username=email,
         )
         user.is_active = False
 
@@ -87,13 +89,18 @@ class ActivationView(APIView):
 class LoginView(APIView):
     def post(self, request):
         data = request.data
-        phone = data.get("phone")
+        email = data.get("email")
         password = data.get("password")
 
-        user = authenticate(username=phone, password=password)
+        user = authenticate(username=email, password=password)
+        refresh = RefreshToken.for_user(user)
         if user is not None:
             login(request, user)
-            return Response(status=200, data={"message": "User logged in successfully."})
+            return Response(status=200, data={
+                "message": "User logged in successfully.",
+                "access_token": str(refresh.access_token),
+                "refresh_token": str(refresh)
+            })
         return Response(status=400, data={"error": "Invalid email or password."})
 
 class LogoutView(APIView):
@@ -106,11 +113,13 @@ class LogoutView(APIView):
 class UserListView(ListAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
 
 
 class UserDetailView(RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
@@ -133,6 +142,7 @@ class UserDetailView(RetrieveUpdateDestroyAPIView):
 
 class AddressBookListView(ListCreateAPIView):
     serializer_class = AddressBookSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         return AddressBook.objects.filter(user=self.kwargs.get("user_id"))
@@ -145,6 +155,7 @@ class AddressBookListView(ListCreateAPIView):
 class AddressBookDetailView(RetrieveUpdateDestroyAPIView):
     queryset = AddressBook.objects.all()
     serializer_class = AddressBookSerializer
+    permission_classes = [IsAuthenticated]
     lookup_url_kwarg = "address_id"
 
     def get_queryset(self):
