@@ -2,12 +2,15 @@ from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIV
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
 from .models import Cart, CartItem
 from .serializers import CartSerializer, CartItemSerializer
 
 
 class CartListView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def post(self, request):
         user_id = request.data.get("user_id")
         product = request.data.get("product")
@@ -32,13 +35,16 @@ class CartListView(APIView):
 class CartDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Cart.objects.all().prefetch_related("items")
     serializer_class = CartSerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]
 
 
 class CartItemListView(ListCreateAPIView):
     queryset = CartItem.objects.all()
     serializer_class = CartItemSerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]
 
 
 class CartItemDetailView(RetrieveUpdateDestroyAPIView):
     queryset = CartItem.objects.all()
     serializer_class = CartItemSerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]

@@ -3,6 +3,7 @@ from django.contrib.auth.views import (
     PasswordResetView, PasswordResetDoneView,
     PasswordResetConfirmView, PasswordResetCompleteView
 )
+from rest_framework_simplejwt.views import TokenRefreshView
 
 from .views import (
     RegistrationView, ActivationView, LoginView, LogoutView, UserListView,
@@ -39,5 +40,6 @@ urlpatterns = [
     path(
         '<int:user_id>/address-book/<int:address_id>', AddressBookDetailView.as_view(),
         name='address_book_detail'
-    )
+    ),
+    path('token/refresh', TokenRefreshView.as_view(), name='token_refresh'),
 ]
